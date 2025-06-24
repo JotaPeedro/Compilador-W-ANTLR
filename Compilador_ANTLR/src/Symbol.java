@@ -1,27 +1,31 @@
 
 
 public class Symbol {
-	private static String name;
-	private int type;
+	private  String name;
+	private Tipo type;
 	private String value;
-	public static final int REAL =0;
-	public static final int INT =1;
-	public Symbol(String name, int type, String value) {
+	public enum Tipo { INT, REAL, INVALIDO, CADEIA }
+	
+	  public Symbol(String name, Tipo type) {
+	        this.name = name;
+	        this.type = type;
+	    }
+	public Symbol(String name, Tipo type, String value) {
 		super();
 		this.name = name;
 		this.type = type;
 		this.value = value;
 	}
-	public static String getName() {
+	public  String getName() {
 		return name;
 	}
 	public void setName(String name) {
 		this.name = name;
 	}
-	public int getType() {
+	public Tipo getType() {
 		return type;
 	}
-	public void setType(int type) {
+	public void setType(Tipo type) {
 		this.type = type;
 	}
 	public String getValue() {
@@ -30,13 +34,7 @@ public class Symbol {
 	public void setValue(String value) {
 		this.value = value;
 	}
-	public static int getReal() {
-		return REAL;
-	}
-	public static int getInt() {
-		return INT;
-	}
-	
+
 	@Override
 	public String toString() {
 		return"Symbol {name: " +this.name+" Type "+type +" value: "+ value +"]";

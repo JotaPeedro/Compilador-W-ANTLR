@@ -8,7 +8,7 @@ public class SymbolTable {
 		
 	}
 	public void add(Symbol symbol) {
-		table.put(Symbol.getName(), symbol);
+		table.put(symbol.getName(), symbol);
 	}
 	
 	public boolean exists(String name) {
