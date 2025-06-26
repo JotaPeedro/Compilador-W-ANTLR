@@ -100,26 +100,6 @@ public interface GyhLangListener extends ParseTreeListener {
 	 */
 	void exitComandoCondicao(GyhLangParser.ComandoCondicaoContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link GyhLangParser#expressaoRelacional}.
-	 * @param ctx the parse tree
-	 */
-	void enterExpressaoRelacional(GyhLangParser.ExpressaoRelacionalContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link GyhLangParser#expressaoRelacional}.
-	 * @param ctx the parse tree
-	 */
-	void exitExpressaoRelacional(GyhLangParser.ExpressaoRelacionalContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link GyhLangParser#termoRelacional}.
-	 * @param ctx the parse tree
-	 */
-	void enterTermoRelacional(GyhLangParser.TermoRelacionalContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link GyhLangParser#termoRelacional}.
-	 * @param ctx the parse tree
-	 */
-	void exitTermoRelacional(GyhLangParser.TermoRelacionalContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link GyhLangParser#comandoRepeticao}.
 	 * @param ctx the parse tree
 	 */
@@ -139,6 +119,26 @@ public interface GyhLangListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitSubAlgoritmo(GyhLangParser.SubAlgoritmoContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link GyhLangParser#expressaoRelacional}.
+	 * @param ctx the parse tree
+	 */
+	void enterExpressaoRelacional(GyhLangParser.ExpressaoRelacionalContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GyhLangParser#expressaoRelacional}.
+	 * @param ctx the parse tree
+	 */
+	void exitExpressaoRelacional(GyhLangParser.ExpressaoRelacionalContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link GyhLangParser#termoRelacional}.
+	 * @param ctx the parse tree
+	 */
+	void enterTermoRelacional(GyhLangParser.TermoRelacionalContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link GyhLangParser#termoRelacional}.
+	 * @param ctx the parse tree
+	 */
+	void exitTermoRelacional(GyhLangParser.TermoRelacionalContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link GyhLangParser#expressaoAritmetica}.
 	 * @param ctx the parse tree
