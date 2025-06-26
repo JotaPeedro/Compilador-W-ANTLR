@@ -1,24 +1,34 @@
-#Erro Léxico: desconhecido ENTO
+#Overflow
+
 :DEC
 num1:INT
 num2:INT
-num3:REAL
-num1:REAL
+num3:INT
 aux:INT
-
 
 :PROG
 # Coloca 3 números em ordem crescente
 LER num1
 LER num2
-LER num4
-
+LER num3
+SE num1 > num2 ENTAO
    INI
- num1 := 500
-	 num3:=50.5
-       num1 := num3
+      aux := 40000
+      num2 := num1
+      num1 := aux
+   FIM 
+SE num1 > num3 E num2 <= num4 E num1 > 3 OU num2 != num4 ENTAO
+   INI
+      aux := num3
+      num3 := num1
+      num1 := aux
    FIM
-IMPRIMIR "Acabou o programa"
+SENAO 
+   INI
+      aux:= num3
+      num3:= num2
+     num2:=aux
+   FIM
 IMPRIMIR num1
 IMPRIMIR num2
 IMPRIMIR num3

@@ -26,15 +26,15 @@ public class GyhLangParser extends Parser {
 	public static final int
 		RULE_programa = 0, RULE_listaDeclaracoes = 1, RULE_declaracao = 2, RULE_listaComandos = 3, 
 		RULE_comando = 4, RULE_comandoAtribuicao = 5, RULE_comandoEntrada = 6, 
-		RULE_comandoSaida = 7, RULE_comandoCondicao = 8, RULE_comandoRepeticao = 9, 
-		RULE_subAlgoritmo = 10, RULE_expressaoAritmetica = 11, RULE_termoAritmetico = 12, 
-		RULE_fatorAritmetico = 13, RULE_expressaoRelacional = 14, RULE_termoRelacional = 15;
+		RULE_comandoSaida = 7, RULE_comandoCondicao = 8, RULE_expressaoRelacional = 9, 
+		RULE_termoRelacional = 10, RULE_comandoRepeticao = 11, RULE_subAlgoritmo = 12, 
+		RULE_expressaoAritmetica = 13, RULE_termoAritmetico = 14, RULE_fatorAritmetico = 15;
 	private static String[] makeRuleNames() {
 		return new String[] {
 			"programa", "listaDeclaracoes", "declaracao", "listaComandos", "comando", 
 			"comandoAtribuicao", "comandoEntrada", "comandoSaida", "comandoCondicao", 
-			"comandoRepeticao", "subAlgoritmo", "expressaoAritmetica", "termoAritmetico", 
-			"fatorAritmetico", "expressaoRelacional", "termoRelacional"
+			"expressaoRelacional", "termoRelacional", "comandoRepeticao", "subAlgoritmo", 
+			"expressaoAritmetica", "termoAritmetico", "fatorAritmetico"
 		};
 	}
 	public static final String[] ruleNames = makeRuleNames();
@@ -109,11 +109,38 @@ public class GyhLangParser extends Parser {
 		private SymbolTable SymbolTable=new SymbolTable();
 		private Symbol.Tipo currentExprType;
 		
+		//--
+		
+		
+		private String _expVar;
+		private String _expContent;
+		private String _writeVar;
+		private String _readVar;
+		private String cond;
+		private ArrayList<Command>condTrue = new ArrayList<Command>();
+		private ArrayList<Command>condFalse = new ArrayList<Command>();
+		
+		
+		private ArrayList<Command>listCmd= new ArrayList<Command>();
+		private ArrayList<Command>listAux= new ArrayList<Command>();
+		private GyhProgram program =new GyhProgram();
+		
+		//--
+		
+		public void generateCommand(){
+			program.generateTarget();
+		};
+		
+		
+		//Função para verificar se a variavel utilizada foi chamada,utilizada onde ocorrem o uso de variaveis
 		public void verificarVar(String nameVar){
 		if(!SymbolTable.exists(nameVar)){
 			System.err.println("Erro Semântico Variavel não declarada "+nameVar);
 			}
 		}
+		//Funcao para verificar a incompatibilidade de tipos entre INT e Float
+		//primeiro verifica se a variavel foi declarada depois o tipo de atribuição,
+		//se for tentar atribuir um real a um int ele da erro
 		
 		 public void checarAtribuicao(String varName, Symbol.Tipo tipoExpressao) {
 	        if (!SymbolTable.exists(varName)) {
@@ -130,6 +157,34 @@ public class GyhLangParser extends Parser {
 	        if (tipo1 == Symbol.Tipo.REAL || tipo2 == Symbol.Tipo.REAL) return Symbol.Tipo.REAL;
 	        return Symbol.Tipo.INT;
 	    }
+	    
+
+	    public void checarPrecisaoReal(String numeroLiteral) {
+	        try {
+	            // Cria um número de alta precisão a partir do texto
+	            java.math.BigDecimal original = new java.math.BigDecimal(numeroLiteral);
+
+	            // Converte o número de alta precisão para double (o tipo da nossa linguagem)
+	            double valorConvertido = original.doubleValue();
+	            
+	            // Se o valor convertido for Infinito, é um overflow de magnitude
+	            if (Double.isInfinite(valorConvertido)) {
+	                System.err.println("ERRO LÉXICO: Overflow de magnitude no número '" + numeroLiteral + "'. O valor é grande demais.");
+	                return;
+	            }
+
+	            // Converte o double de volta para alta precisão para ver se algo foi perdido
+	            java.math.BigDecimal revertido = new java.math.BigDecimal(valorConvertido);
+
+	            // Compara o número original com o revertido. Se forem diferentes, houve perda de precisão.
+	            if (original.compareTo(revertido) != 0) {
+	                System.err.println("ERRO LÉXICO: Overflow de precisão no número '" + numeroLiteral + "'. O número tem dígitos demais para serem representados com exatidão.");
+	            }
+	        } catch (NumberFormatException e) {
+	            System.err.println("ERRO LÉXICO: Formato inválido para o número '" + numeroLiteral + "'.");
+	        }
+	    }
+	    
 
 
 	public GyhLangParser(TokenStream input) {
@@ -182,6 +237,14 @@ public class GyhLangParser extends Parser {
 			match(PCProg);
 			setState(37);
 			listaComandos();
+			program.setVarTable(SymbolTable);
+							System.out.println("Programa está na VarTable ");
+						
+						
+						
+						program.setCommand(listCmd);
+						generateCommand();
+						
 			}
 		}
 		catch (RecognitionException re) {
@@ -223,17 +286,17 @@ public class GyhLangParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(42);
+			setState(43);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==Var) {
 				{
 				{
-				setState(39);
+				setState(40);
 				declaracao();
 				}
 				}
-				setState(44);
+				setState(45);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
@@ -278,22 +341,22 @@ public class GyhLangParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(45);
-			((DeclaracaoContext)_localctx).Var = match(Var);
 			setState(46);
+			((DeclaracaoContext)_localctx).Var = match(Var);
+			setState(47);
 			match(DELIM);
-			setState(49);
+			setState(50);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case PcInt:
 				{
-				setState(47);
+				setState(48);
 				((DeclaracaoContext)_localctx).i = match(PcInt);
 				}
 				break;
 			case PcReal:
 				{
-				setState(48);
+				setState(49);
 				((DeclaracaoContext)_localctx).r = match(PcReal);
 				}
 				break;
@@ -306,10 +369,7 @@ public class GyhLangParser extends Parser {
 			            System.err.println("Erro Semântico: Variável '" + varName + "' já foi declarada.");
 			        } else {
 			            Symbol.Tipo varType;
-			            
-			            // --- AQUI ESTÁ A CORREÇÃO DEFINITIVA ---
-			            // A verificação agora é muito mais simples e direta.
-			            // O rótulo '((DeclaracaoContext)_localctx).i' só terá um valor (não será nulo) se o token PcInt for encontrado.
+
 			            if (((DeclaracaoContext)_localctx).i != null) {
 			                varType = Symbol.Tipo.INT;
 			            } else {
@@ -361,17 +421,22 @@ public class GyhLangParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(56);
+			setState(59);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << PcLer) | (1L << PcImprimir) | (1L << PcSe) | (1L << PcEnqto) | (1L << PcIni) | (1L << Var))) != 0)) {
 				{
 				{
-				setState(53);
+				setState(54);
 				comando();
+
+										listCmd.addAll(listAux);
+										listAux.removeAll(listAux);
+										
+										
 				}
 				}
-				setState(58);
+				setState(61);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
@@ -427,42 +492,42 @@ public class GyhLangParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(65);
+			setState(68);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case Var:
 				{
-				setState(59);
+				setState(62);
 				comandoAtribuicao();
 				}
 				break;
 			case PcLer:
 				{
-				setState(60);
+				setState(63);
 				comandoEntrada();
 				}
 				break;
 			case PcImprimir:
 				{
-				setState(61);
+				setState(64);
 				comandoSaida();
 				}
 				break;
 			case PcSe:
 				{
-				setState(62);
+				setState(65);
 				comandoCondicao();
 				}
 				break;
 			case PcEnqto:
 				{
-				setState(63);
+				setState(66);
 				comandoRepeticao();
 				}
 				break;
 			case PcIni:
 				{
-				setState(64);
+				setState(67);
 				subAlgoritmo();
 				}
 				break;
@@ -484,6 +549,7 @@ public class GyhLangParser extends Parser {
 
 	public static class ComandoAtribuicaoContext extends ParserRuleContext {
 		public Token Var;
+		public ExpressaoAritmeticaContext exp;
 		public TerminalNode Var() { return getToken(GyhLangParser.Var, 0); }
 		public TerminalNode Atrib() { return getToken(GyhLangParser.Atrib, 0); }
 		public ExpressaoAritmeticaContext expressaoAritmetica() {
@@ -509,13 +575,26 @@ public class GyhLangParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(67);
+			setState(70);
 			((ComandoAtribuicaoContext)_localctx).Var = match(Var);
-			setState(68);
+			setState(71);
 			match(Atrib);
-			setState(69);
-			expressaoAritmetica();
-			checarAtribuicao((((ComandoAtribuicaoContext)_localctx).Var!=null?((ComandoAtribuicaoContext)_localctx).Var.getText():null), currentExprType);
+			setState(72);
+			((ComandoAtribuicaoContext)_localctx).exp = expressaoAritmetica();
+
+			        // 2. A checagem semântica continua sendo o primeiro passo
+			        checarAtribuicao((((ComandoAtribuicaoContext)_localctx).Var!=null?((ComandoAtribuicaoContext)_localctx).Var.getText():null), currentExprType);
+			        
+			        // 3. Capturamos o nome da variável e o conteúdo da expressão
+			        _expVar = (((ComandoAtribuicaoContext)_localctx).Var!=null?((ComandoAtribuicaoContext)_localctx).Var.getText():null);
+			        _expContent = (((ComandoAtribuicaoContext)_localctx).exp!=null?_input.getText(((ComandoAtribuicaoContext)_localctx).exp.start,((ComandoAtribuicaoContext)_localctx).exp.stop):null); // Usamos o rótulo para pegar o texto completo da expressão
+			        
+			        // 4. Criamos o objeto de comando com os valores capturados
+			        CommandAtribuicao cmd = new CommandAtribuicao(_expVar, _expContent);
+			        
+			        // 5. Adicionamos o comando à lista para geração de código
+			        listAux.add(cmd);
+			    
 			}
 		}
 		catch (RecognitionException re) {
@@ -552,11 +631,15 @@ public class GyhLangParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(72);
+			setState(75);
 			match(PcLer);
-			setState(73);
+			setState(76);
 			match(Var);
 			verificarVar(_input.LT(-1).getText());
+										_readVar=_input.LT(-1).getText();
+										CommandLeitura cmd = new CommandLeitura(_readVar);
+										listAux.add(cmd);
+										
 			}
 		}
 		catch (RecognitionException re) {
@@ -571,6 +654,8 @@ public class GyhLangParser extends Parser {
 	}
 
 	public static class ComandoSaidaContext extends ParserRuleContext {
+		public Token Var;
+		public Token Cadeia;
 		public TerminalNode PcImprimir() { return getToken(GyhLangParser.PcImprimir, 0); }
 		public TerminalNode Var() { return getToken(GyhLangParser.Var, 0); }
 		public TerminalNode Cadeia() { return getToken(GyhLangParser.Cadeia, 0); }
@@ -594,22 +679,37 @@ public class GyhLangParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(76);
+			setState(79);
 			match(PcImprimir);
-			setState(80);
+			setState(84);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case Var:
 				{
-				setState(77);
-				match(Var);
-				verificarVar(_input.LT(-1).getText());
+				setState(80);
+				((ComandoSaidaContext)_localctx).Var = match(Var);
+
+				            String varName = (((ComandoSaidaContext)_localctx).Var!=null?((ComandoSaidaContext)_localctx).Var.getText():null);
+				            verificarVar(varName);
+				            
+				            // Pega o tipo da variável da tabela de símbolos
+				            Symbol.Tipo varType = SymbolTable.get(varName).getType();
+				            
+				            // Cria o comando com o nome da variável e seu tipo
+				            CommandEscrita cmd = new CommandEscrita(varName, varType);
+				            listCmd.add(cmd);
+				        
 				}
 				break;
 			case Cadeia:
 				{
-				setState(79);
-				match(Cadeia);
+				setState(82);
+				((ComandoSaidaContext)_localctx).Cadeia = match(Cadeia);
+
+				            // Cria o comando com o texto da cadeia e o tipo CADEIA
+				            CommandEscrita cmd = new CommandEscrita((((ComandoSaidaContext)_localctx).Cadeia!=null?((ComandoSaidaContext)_localctx).Cadeia.getText():null), Symbol.Tipo.CADEIA);
+				            listCmd.add(cmd);
+				        
 				}
 				break;
 			default:
@@ -629,16 +729,17 @@ public class GyhLangParser extends Parser {
 	}
 
 	public static class ComandoCondicaoContext extends ParserRuleContext {
+		public ExpressaoRelacionalContext exp;
 		public TerminalNode PcSe() { return getToken(GyhLangParser.PcSe, 0); }
-		public ExpressaoRelacionalContext expressaoRelacional() {
-			return getRuleContext(ExpressaoRelacionalContext.class,0);
-		}
 		public TerminalNode PcEntao() { return getToken(GyhLangParser.PcEntao, 0); }
 		public List<ComandoContext> comando() {
 			return getRuleContexts(ComandoContext.class);
 		}
 		public ComandoContext comando(int i) {
 			return getRuleContext(ComandoContext.class,i);
+		}
+		public ExpressaoRelacionalContext expressaoRelacional() {
+			return getRuleContext(ExpressaoRelacionalContext.class,0);
 		}
 		public TerminalNode PcSenao() { return getToken(GyhLangParser.PcSenao, 0); }
 		public ComandoCondicaoContext(ParserRuleContext parent, int invokingState) {
@@ -661,25 +762,119 @@ public class GyhLangParser extends Parser {
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(82);
+			setState(86);
 			match(PcSe);
-			setState(83);
-			expressaoRelacional();
-			setState(84);
-			match(PcEntao);
-			setState(85);
-			comando();
+			setState(87);
+			((ComandoCondicaoContext)_localctx).exp = expressaoRelacional();
 			setState(88);
+			match(PcEntao);
+
+			        // 1. Prepara as listas para os blocos TRUE e FALSE
+			        ArrayList<Command> comandosTrue = new ArrayList<>();
+			        ArrayList<Command> comandosFalse = new ArrayList<>();
+			        
+			        // Salva a lista principal atual
+			        ArrayList<Command> listaPrincipalAntiga = listCmd;
+			        
+			        // 2. Redireciona a lista principal para a lista do bloco TRUE
+			        listCmd = comandosTrue;
+			    
+			setState(90);
+			comando();
+			setState(94);
 			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,5,_ctx) ) {
 			case 1:
 				{
-				setState(86);
+				setState(91);
 				match(PcSenao);
-				setState(87);
+
+				            // 3. Se encontrar um SENAO, redireciona a lista para o bloco FALSE
+				            listCmd = comandosFalse;
+				        
+				setState(93);
 				comando();
 				}
 				break;
+			}
+
+			        // 4. AÇÃO FINAL: Restaura a lista principal e monta o comando IF
+			        listCmd = listaPrincipalAntiga;
+			        
+			       String condicaoTexto = _input.getText((((ComandoCondicaoContext)_localctx).exp!=null?(((ComandoCondicaoContext)_localctx).exp.start):null), (((ComandoCondicaoContext)_localctx).exp!=null?(((ComandoCondicaoContext)_localctx).exp.stop):null));
+
+
+			    condicaoTexto = condicaoTexto.replace("E", " && ").replace("OU", " || ");
+			        
+			        // Cria o comando IF com as listas que foram preenchidas.
+			        // Se não houve SENAO, 'comandosFalse' estará simplesmente vazia.
+			        CommandCondicao cmd = new CommandCondicao(condicaoTexto, comandosTrue, comandosFalse);
+			        
+			        // Adiciona o comando IF completo (já com seus filhos) à lista principal
+			        listCmd.add(cmd);
+			    
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	public static class ExpressaoRelacionalContext extends ParserRuleContext {
+		public List<TermoRelacionalContext> termoRelacional() {
+			return getRuleContexts(TermoRelacionalContext.class);
+		}
+		public TermoRelacionalContext termoRelacional(int i) {
+			return getRuleContext(TermoRelacionalContext.class,i);
+		}
+		public List<TerminalNode> OpBol() { return getTokens(GyhLangParser.OpBol); }
+		public TerminalNode OpBol(int i) {
+			return getToken(GyhLangParser.OpBol, i);
+		}
+		public ExpressaoRelacionalContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_expressaoRelacional; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof GyhLangListener ) ((GyhLangListener)listener).enterExpressaoRelacional(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof GyhLangListener ) ((GyhLangListener)listener).exitExpressaoRelacional(this);
+		}
+	}
+
+	public final ExpressaoRelacionalContext expressaoRelacional() throws RecognitionException {
+		ExpressaoRelacionalContext _localctx = new ExpressaoRelacionalContext(_ctx, getState());
+		enterRule(_localctx, 18, RULE_expressaoRelacional);
+		int _la;
+		try {
+			enterOuterAlt(_localctx, 1);
+			{
+			setState(98);
+			termoRelacional();
+			setState(103);
+			_errHandler.sync(this);
+			_la = _input.LA(1);
+			while (_la==OpBol) {
+				{
+				{
+				setState(99);
+				match(OpBol);
+				setState(100);
+				termoRelacional();
+				}
+				}
+				setState(105);
+				_errHandler.sync(this);
+				_la = _input.LA(1);
 			}
 			}
 		}
@@ -694,13 +889,83 @@ public class GyhLangParser extends Parser {
 		return _localctx;
 	}
 
-	public static class ComandoRepeticaoContext extends ParserRuleContext {
-		public TerminalNode PcEnqto() { return getToken(GyhLangParser.PcEnqto, 0); }
+	public static class TermoRelacionalContext extends ParserRuleContext {
+		public List<ExpressaoAritmeticaContext> expressaoAritmetica() {
+			return getRuleContexts(ExpressaoAritmeticaContext.class);
+		}
+		public ExpressaoAritmeticaContext expressaoAritmetica(int i) {
+			return getRuleContext(ExpressaoAritmeticaContext.class,i);
+		}
+		public TerminalNode OpRel() { return getToken(GyhLangParser.OpRel, 0); }
+		public TerminalNode AbrePar() { return getToken(GyhLangParser.AbrePar, 0); }
 		public ExpressaoRelacionalContext expressaoRelacional() {
 			return getRuleContext(ExpressaoRelacionalContext.class,0);
 		}
+		public TerminalNode FechaPar() { return getToken(GyhLangParser.FechaPar, 0); }
+		public TermoRelacionalContext(ParserRuleContext parent, int invokingState) {
+			super(parent, invokingState);
+		}
+		@Override public int getRuleIndex() { return RULE_termoRelacional; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof GyhLangListener ) ((GyhLangListener)listener).enterTermoRelacional(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof GyhLangListener ) ((GyhLangListener)listener).exitTermoRelacional(this);
+		}
+	}
+
+	public final TermoRelacionalContext termoRelacional() throws RecognitionException {
+		TermoRelacionalContext _localctx = new TermoRelacionalContext(_ctx, getState());
+		enterRule(_localctx, 20, RULE_termoRelacional);
+		try {
+			setState(114);
+			_errHandler.sync(this);
+			switch ( getInterpreter().adaptivePredict(_input,7,_ctx) ) {
+			case 1:
+				enterOuterAlt(_localctx, 1);
+				{
+				setState(106);
+				expressaoAritmetica();
+				setState(107);
+				match(OpRel);
+				setState(108);
+				expressaoAritmetica();
+				}
+				break;
+			case 2:
+				enterOuterAlt(_localctx, 2);
+				{
+				setState(110);
+				match(AbrePar);
+				setState(111);
+				expressaoRelacional();
+				setState(112);
+				match(FechaPar);
+				}
+				break;
+			}
+		}
+		catch (RecognitionException re) {
+			_localctx.exception = re;
+			_errHandler.reportError(this, re);
+			_errHandler.recover(this, re);
+		}
+		finally {
+			exitRule();
+		}
+		return _localctx;
+	}
+
+	public static class ComandoRepeticaoContext extends ParserRuleContext {
+		public ExpressaoRelacionalContext exp;
+		public TerminalNode PcEnqto() { return getToken(GyhLangParser.PcEnqto, 0); }
 		public ComandoContext comando() {
 			return getRuleContext(ComandoContext.class,0);
+		}
+		public ExpressaoRelacionalContext expressaoRelacional() {
+			return getRuleContext(ExpressaoRelacionalContext.class,0);
 		}
 		public ComandoRepeticaoContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -718,16 +983,36 @@ public class GyhLangParser extends Parser {
 
 	public final ComandoRepeticaoContext comandoRepeticao() throws RecognitionException {
 		ComandoRepeticaoContext _localctx = new ComandoRepeticaoContext(_ctx, getState());
-		enterRule(_localctx, 18, RULE_comandoRepeticao);
+		enterRule(_localctx, 22, RULE_comandoRepeticao);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(90);
+			setState(116);
 			match(PcEnqto);
-			setState(91);
-			expressaoRelacional();
-			setState(92);
+			setState(117);
+			((ComandoRepeticaoContext)_localctx).exp = expressaoRelacional();
+
+			        // 1. Prepara a lista para o bloco de comandos do loop
+			        ArrayList<Command> comandosLoop = new ArrayList<>();
+			        ArrayList<Command> listaPrincipalAntiga = listCmd;
+			        
+			        // 2. Redireciona a lista principal para a lista do loop
+			        listCmd = comandosLoop;
+			    
+			setState(119);
 			comando();
+
+			        // 3. Restaura a lista principal
+			        listCmd = listaPrincipalAntiga;
+			        
+			        // 4. Captura a condição e cria o comando de repetição
+			        String condicaoTexto = _input.getText((((ComandoRepeticaoContext)_localctx).exp!=null?(((ComandoRepeticaoContext)_localctx).exp.start):null), (((ComandoRepeticaoContext)_localctx).exp!=null?(((ComandoRepeticaoContext)_localctx).exp.stop):null));
+			        condicaoTexto = condicaoTexto.replace("E", "&&").replace("OU", "||");
+			        
+			        // Supondo que você tenha uma classe CommandRepeticao
+			        CommandRepeticao cmd = new CommandRepeticao(condicaoTexto, comandosLoop);
+			        listCmd.add(cmd);
+			    
 			}
 		}
 		catch (RecognitionException re) {
@@ -763,15 +1048,15 @@ public class GyhLangParser extends Parser {
 
 	public final SubAlgoritmoContext subAlgoritmo() throws RecognitionException {
 		SubAlgoritmoContext _localctx = new SubAlgoritmoContext(_ctx, getState());
-		enterRule(_localctx, 20, RULE_subAlgoritmo);
+		enterRule(_localctx, 24, RULE_subAlgoritmo);
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(94);
+			setState(122);
 			match(PcIni);
-			setState(95);
+			setState(123);
 			listaComandos();
-			setState(96);
+			setState(124);
 			match(PcFim);
 			}
 		}
@@ -820,20 +1105,20 @@ public class GyhLangParser extends Parser {
 
 	public final ExpressaoAritmeticaContext expressaoAritmetica() throws RecognitionException {
 		ExpressaoAritmeticaContext _localctx = new ExpressaoAritmeticaContext(_ctx, getState());
-		enterRule(_localctx, 22, RULE_expressaoAritmetica);
+		enterRule(_localctx, 26, RULE_expressaoAritmetica);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(98);
+			setState(126);
 			((ExpressaoAritmeticaContext)_localctx).e1 = termoAritmetico();
-			setState(106);
+			setState(134);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==OpAritSoma || _la==OpAritSub) {
 				{
 				{
-				setState(99);
+				setState(127);
 				((ExpressaoAritmeticaContext)_localctx).op = _input.LT(1);
 				_la = _input.LA(1);
 				if ( !(_la==OpAritSoma || _la==OpAritSub) ) {
@@ -845,20 +1130,20 @@ public class GyhLangParser extends Parser {
 					consume();
 				}
 
-				            // AQUI ESTÁ A MUDANÇA-CHAVE:
-				            // Salvamos o tipo do lado esquerdo ANTES de processar o lado direito.
+				         
+				            // Salva o tipo do lado esquerdo ANTES de processar o lado direito.
 				            Symbol.Tipo tipoEsquerda = currentExprType;
 				        
-				setState(101);
+				setState(129);
 				((ExpressaoAritmeticaContext)_localctx).e2 = termoAritmetico();
 
-				            // Agora usamos o tipo salvo da esquerda e o tipo atual (da direita)
+				            // Usa o tipo salvo da esquerda e o tipo atual (da direita)
 				            // para calcular o tipo final da expressão.
 				            currentExprType = checarTipoExpressao(tipoEsquerda, currentExprType);
 				        
 				}
 				}
-				setState(108);
+				setState(136);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
@@ -909,20 +1194,20 @@ public class GyhLangParser extends Parser {
 
 	public final TermoAritmeticoContext termoAritmetico() throws RecognitionException {
 		TermoAritmeticoContext _localctx = new TermoAritmeticoContext(_ctx, getState());
-		enterRule(_localctx, 24, RULE_termoAritmetico);
+		enterRule(_localctx, 28, RULE_termoAritmetico);
 		int _la;
 		try {
 			enterOuterAlt(_localctx, 1);
 			{
-			setState(109);
+			setState(137);
 			((TermoAritmeticoContext)_localctx).e1 = fatorAritmetico();
-			setState(117);
+			setState(145);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
 			while (_la==OpAritMult || _la==OpAritDiv) {
 				{
 				{
-				setState(110);
+				setState(138);
 				((TermoAritmeticoContext)_localctx).op = _input.LT(1);
 				_la = _input.LA(1);
 				if ( !(_la==OpAritMult || _la==OpAritDiv) ) {
@@ -934,18 +1219,18 @@ public class GyhLangParser extends Parser {
 					consume();
 				}
 
-				            // A mesma lógica: salvamos o tipo da esquerda.
+				            // salvamos o tipo da esquerda.
 				            Symbol.Tipo tipoEsquerda = currentExprType;
 				        
-				setState(112);
+				setState(140);
 				((TermoAritmeticoContext)_localctx).e2 = fatorAritmetico();
 
-				            // E usamos os tipos corretos para a checagem.
+				            // E usa os tipos corretos para a checagem.
 				            currentExprType = checarTipoExpressao(tipoEsquerda, currentExprType);
 				        
 				}
 				}
-				setState(119);
+				setState(147);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
 			}
@@ -963,6 +1248,7 @@ public class GyhLangParser extends Parser {
 	}
 
 	public static class FatorAritmeticoContext extends ParserRuleContext {
+		public Token NumReal;
 		public Token Var;
 		public TerminalNode NumInt() { return getToken(GyhLangParser.NumInt, 0); }
 		public TerminalNode NumReal() { return getToken(GyhLangParser.NumReal, 0); }
@@ -988,18 +1274,18 @@ public class GyhLangParser extends Parser {
 
 	public final FatorAritmeticoContext fatorAritmetico() throws RecognitionException {
 		FatorAritmeticoContext _localctx = new FatorAritmeticoContext(_ctx, getState());
-		enterRule(_localctx, 26, RULE_fatorAritmetico);
+		enterRule(_localctx, 30, RULE_fatorAritmetico);
 		try {
-			setState(130);
+			setState(158);
 			_errHandler.sync(this);
 			switch (_input.LA(1)) {
 			case NumInt:
 				enterOuterAlt(_localctx, 1);
 				{
-				setState(120);
+				setState(148);
 				match(NumInt);
 				 
-				            // Ação: Define o tipo da expressão atual como INT
+				            //  Define o tipo da expressão atual como INT
 				            currentExprType = Symbol.Tipo.INT; 
 				        
 				}
@@ -1007,10 +1293,11 @@ public class GyhLangParser extends Parser {
 			case NumReal:
 				enterOuterAlt(_localctx, 2);
 				{
-				setState(122);
-				match(NumReal);
+				setState(150);
+				((FatorAritmeticoContext)_localctx).NumReal = match(NumReal);
 				 
-				            // Ação: Define o tipo da expressão atual como REAL
+				                       // Antes de definir o tipo, checamos a precisão do literal.
+				            checarPrecisaoReal((((FatorAritmeticoContext)_localctx).NumReal!=null?((FatorAritmeticoContext)_localctx).NumReal.getText():null));
 				            currentExprType = Symbol.Tipo.REAL; 
 				        
 				}
@@ -1018,13 +1305,13 @@ public class GyhLangParser extends Parser {
 			case Var:
 				enterOuterAlt(_localctx, 3);
 				{
-				setState(124);
+				setState(152);
 				((FatorAritmeticoContext)_localctx).Var = match(Var);
 
 				            String varName = (((FatorAritmeticoContext)_localctx).Var!=null?((FatorAritmeticoContext)_localctx).Var.getText():null);
 				            verificarVar(varName); // Verifica se a variável foi declarada
 				            if (SymbolTable.exists(varName)) {
-				                // AÇÃO ESSENCIAL: Define o tipo da expressão como o tipo da variável encontrada
+				                // Define o tipo da expressão como o tipo da variável encontrada
 				                currentExprType = SymbolTable.get(varName).getType();
 				            } else {
 				                // Se a variável não existe, marca o tipo como inválido
@@ -1036,11 +1323,11 @@ public class GyhLangParser extends Parser {
 			case AbrePar:
 				enterOuterAlt(_localctx, 4);
 				{
-				setState(126);
+				setState(154);
 				match(AbrePar);
-				setState(127);
+				setState(155);
 				expressaoAritmetica();
-				setState(128);
+				setState(156);
 				match(FechaPar);
 				}
 				break;
@@ -1059,180 +1346,52 @@ public class GyhLangParser extends Parser {
 		return _localctx;
 	}
 
-	public static class ExpressaoRelacionalContext extends ParserRuleContext {
-		public List<TermoRelacionalContext> termoRelacional() {
-			return getRuleContexts(TermoRelacionalContext.class);
-		}
-		public TermoRelacionalContext termoRelacional(int i) {
-			return getRuleContext(TermoRelacionalContext.class,i);
-		}
-		public List<TerminalNode> OpBol() { return getTokens(GyhLangParser.OpBol); }
-		public TerminalNode OpBol(int i) {
-			return getToken(GyhLangParser.OpBol, i);
-		}
-		public ExpressaoRelacionalContext(ParserRuleContext parent, int invokingState) {
-			super(parent, invokingState);
-		}
-		@Override public int getRuleIndex() { return RULE_expressaoRelacional; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof GyhLangListener ) ((GyhLangListener)listener).enterExpressaoRelacional(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof GyhLangListener ) ((GyhLangListener)listener).exitExpressaoRelacional(this);
-		}
-	}
-
-	public final ExpressaoRelacionalContext expressaoRelacional() throws RecognitionException {
-		ExpressaoRelacionalContext _localctx = new ExpressaoRelacionalContext(_ctx, getState());
-		enterRule(_localctx, 28, RULE_expressaoRelacional);
-		int _la;
-		try {
-			enterOuterAlt(_localctx, 1);
-			{
-			setState(132);
-			termoRelacional();
-			setState(137);
-			_errHandler.sync(this);
-			_la = _input.LA(1);
-			while (_la==OpBol) {
-				{
-				{
-				setState(133);
-				match(OpBol);
-				setState(134);
-				termoRelacional();
-				}
-				}
-				setState(139);
-				_errHandler.sync(this);
-				_la = _input.LA(1);
-			}
-			}
-		}
-		catch (RecognitionException re) {
-			_localctx.exception = re;
-			_errHandler.reportError(this, re);
-			_errHandler.recover(this, re);
-		}
-		finally {
-			exitRule();
-		}
-		return _localctx;
-	}
-
-	public static class TermoRelacionalContext extends ParserRuleContext {
-		public List<ExpressaoAritmeticaContext> expressaoAritmetica() {
-			return getRuleContexts(ExpressaoAritmeticaContext.class);
-		}
-		public ExpressaoAritmeticaContext expressaoAritmetica(int i) {
-			return getRuleContext(ExpressaoAritmeticaContext.class,i);
-		}
-		public TerminalNode OpRel() { return getToken(GyhLangParser.OpRel, 0); }
-		public TerminalNode AbrePar() { return getToken(GyhLangParser.AbrePar, 0); }
-		public ExpressaoRelacionalContext expressaoRelacional() {
-			return getRuleContext(ExpressaoRelacionalContext.class,0);
-		}
-		public TerminalNode FechaPar() { return getToken(GyhLangParser.FechaPar, 0); }
-		public TermoRelacionalContext(ParserRuleContext parent, int invokingState) {
-			super(parent, invokingState);
-		}
-		@Override public int getRuleIndex() { return RULE_termoRelacional; }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof GyhLangListener ) ((GyhLangListener)listener).enterTermoRelacional(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof GyhLangListener ) ((GyhLangListener)listener).exitTermoRelacional(this);
-		}
-	}
-
-	public final TermoRelacionalContext termoRelacional() throws RecognitionException {
-		TermoRelacionalContext _localctx = new TermoRelacionalContext(_ctx, getState());
-		enterRule(_localctx, 30, RULE_termoRelacional);
-		try {
-			setState(148);
-			_errHandler.sync(this);
-			switch ( getInterpreter().adaptivePredict(_input,10,_ctx) ) {
-			case 1:
-				enterOuterAlt(_localctx, 1);
-				{
-				setState(140);
-				expressaoAritmetica();
-				setState(141);
-				match(OpRel);
-				setState(142);
-				expressaoAritmetica();
-				}
-				break;
-			case 2:
-				enterOuterAlt(_localctx, 2);
-				{
-				setState(144);
-				match(AbrePar);
-				setState(145);
-				expressaoRelacional();
-				setState(146);
-				match(FechaPar);
-				}
-				break;
-			}
-		}
-		catch (RecognitionException re) {
-			_localctx.exception = re;
-			_errHandler.reportError(this, re);
-			_errHandler.recover(this, re);
-		}
-		finally {
-			exitRule();
-		}
-		return _localctx;
-	}
-
 	public static final String _serializedATN =
-		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\36\u0099\4\2\t\2"+
+		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\36\u00a3\4\2\t\2"+
 		"\4\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13"+
 		"\t\13\4\f\t\f\4\r\t\r\4\16\t\16\4\17\t\17\4\20\t\20\4\21\t\21\3\2\3\2"+
-		"\3\2\3\2\3\2\3\2\3\2\3\3\7\3+\n\3\f\3\16\3.\13\3\3\4\3\4\3\4\3\4\5\4\64"+
-		"\n\4\3\4\3\4\3\5\7\59\n\5\f\5\16\5<\13\5\3\6\3\6\3\6\3\6\3\6\3\6\5\6D"+
-		"\n\6\3\7\3\7\3\7\3\7\3\7\3\b\3\b\3\b\3\b\3\t\3\t\3\t\3\t\5\tS\n\t\3\n"+
-		"\3\n\3\n\3\n\3\n\3\n\5\n[\n\n\3\13\3\13\3\13\3\13\3\f\3\f\3\f\3\f\3\r"+
-		"\3\r\3\r\3\r\3\r\3\r\7\rk\n\r\f\r\16\rn\13\r\3\16\3\16\3\16\3\16\3\16"+
-		"\3\16\7\16v\n\16\f\16\16\16y\13\16\3\17\3\17\3\17\3\17\3\17\3\17\3\17"+
-		"\3\17\3\17\3\17\5\17\u0085\n\17\3\20\3\20\3\20\7\20\u008a\n\20\f\20\16"+
-		"\20\u008d\13\20\3\21\3\21\3\21\3\21\3\21\3\21\3\21\3\21\5\21\u0097\n\21"+
-		"\3\21\2\2\22\2\4\6\b\n\f\16\20\22\24\26\30\32\34\36 \2\4\3\2\21\22\3\2"+
-		"\17\20\2\u0099\2\"\3\2\2\2\4,\3\2\2\2\6/\3\2\2\2\b:\3\2\2\2\nC\3\2\2\2"+
-		"\fE\3\2\2\2\16J\3\2\2\2\20N\3\2\2\2\22T\3\2\2\2\24\\\3\2\2\2\26`\3\2\2"+
-		"\2\30d\3\2\2\2\32o\3\2\2\2\34\u0084\3\2\2\2\36\u0086\3\2\2\2 \u0096\3"+
-		"\2\2\2\"#\7\23\2\2#$\7\16\2\2$%\5\4\3\2%&\7\23\2\2&\'\7\r\2\2\'(\5\b\5"+
-		"\2(\3\3\2\2\2)+\5\6\4\2*)\3\2\2\2+.\3\2\2\2,*\3\2\2\2,-\3\2\2\2-\5\3\2"+
-		"\2\2.,\3\2\2\2/\60\7\31\2\2\60\63\7\23\2\2\61\64\7\3\2\2\62\64\7\5\2\2"+
-		"\63\61\3\2\2\2\63\62\3\2\2\2\64\65\3\2\2\2\65\66\b\4\1\2\66\7\3\2\2\2"+
-		"\679\5\n\6\28\67\3\2\2\29<\3\2\2\2:8\3\2\2\2:;\3\2\2\2;\t\3\2\2\2<:\3"+
-		"\2\2\2=D\5\f\7\2>D\5\16\b\2?D\5\20\t\2@D\5\22\n\2AD\5\24\13\2BD\5\26\f"+
-		"\2C=\3\2\2\2C>\3\2\2\2C?\3\2\2\2C@\3\2\2\2CA\3\2\2\2CB\3\2\2\2D\13\3\2"+
-		"\2\2EF\7\31\2\2FG\7\24\2\2GH\5\30\r\2HI\b\7\1\2I\r\3\2\2\2JK\7\4\2\2K"+
-		"L\7\31\2\2LM\b\b\1\2M\17\3\2\2\2NR\7\6\2\2OP\7\31\2\2PS\b\t\1\2QS\7\32"+
-		"\2\2RO\3\2\2\2RQ\3\2\2\2S\21\3\2\2\2TU\7\7\2\2UV\5\36\20\2VW\7\t\2\2W"+
-		"Z\5\n\6\2XY\7\b\2\2Y[\5\n\6\2ZX\3\2\2\2Z[\3\2\2\2[\23\3\2\2\2\\]\7\n\2"+
-		"\2]^\5\36\20\2^_\5\n\6\2_\25\3\2\2\2`a\7\13\2\2ab\5\b\5\2bc\7\f\2\2c\27"+
-		"\3\2\2\2dl\5\32\16\2ef\t\2\2\2fg\b\r\1\2gh\5\32\16\2hi\b\r\1\2ik\3\2\2"+
-		"\2je\3\2\2\2kn\3\2\2\2lj\3\2\2\2lm\3\2\2\2m\31\3\2\2\2nl\3\2\2\2ow\5\34"+
-		"\17\2pq\t\3\2\2qr\b\16\1\2rs\5\34\17\2st\b\16\1\2tv\3\2\2\2up\3\2\2\2"+
-		"vy\3\2\2\2wu\3\2\2\2wx\3\2\2\2x\33\3\2\2\2yw\3\2\2\2z{\7\33\2\2{\u0085"+
-		"\b\17\1\2|}\7\34\2\2}\u0085\b\17\1\2~\177\7\31\2\2\177\u0085\b\17\1\2"+
-		"\u0080\u0081\7\27\2\2\u0081\u0082\5\30\r\2\u0082\u0083\7\30\2\2\u0083"+
-		"\u0085\3\2\2\2\u0084z\3\2\2\2\u0084|\3\2\2\2\u0084~\3\2\2\2\u0084\u0080"+
-		"\3\2\2\2\u0085\35\3\2\2\2\u0086\u008b\5 \21\2\u0087\u0088\7\26\2\2\u0088"+
-		"\u008a\5 \21\2\u0089\u0087\3\2\2\2\u008a\u008d\3\2\2\2\u008b\u0089\3\2"+
-		"\2\2\u008b\u008c\3\2\2\2\u008c\37\3\2\2\2\u008d\u008b\3\2\2\2\u008e\u008f"+
-		"\5\30\r\2\u008f\u0090\7\25\2\2\u0090\u0091\5\30\r\2\u0091\u0097\3\2\2"+
-		"\2\u0092\u0093\7\27\2\2\u0093\u0094\5\36\20\2\u0094\u0095\7\30\2\2\u0095"+
-		"\u0097\3\2\2\2\u0096\u008e\3\2\2\2\u0096\u0092\3\2\2\2\u0097!\3\2\2\2"+
-		"\r,\63:CRZlw\u0084\u008b\u0096";
+		"\3\2\3\2\3\2\3\2\3\2\3\2\3\3\7\3,\n\3\f\3\16\3/\13\3\3\4\3\4\3\4\3\4\5"+
+		"\4\65\n\4\3\4\3\4\3\5\3\5\3\5\7\5<\n\5\f\5\16\5?\13\5\3\6\3\6\3\6\3\6"+
+		"\3\6\3\6\5\6G\n\6\3\7\3\7\3\7\3\7\3\7\3\b\3\b\3\b\3\b\3\t\3\t\3\t\3\t"+
+		"\3\t\5\tW\n\t\3\n\3\n\3\n\3\n\3\n\3\n\3\n\3\n\5\na\n\n\3\n\3\n\3\13\3"+
+		"\13\3\13\7\13h\n\13\f\13\16\13k\13\13\3\f\3\f\3\f\3\f\3\f\3\f\3\f\3\f"+
+		"\5\fu\n\f\3\r\3\r\3\r\3\r\3\r\3\r\3\16\3\16\3\16\3\16\3\17\3\17\3\17\3"+
+		"\17\3\17\3\17\7\17\u0087\n\17\f\17\16\17\u008a\13\17\3\20\3\20\3\20\3"+
+		"\20\3\20\3\20\7\20\u0092\n\20\f\20\16\20\u0095\13\20\3\21\3\21\3\21\3"+
+		"\21\3\21\3\21\3\21\3\21\3\21\3\21\5\21\u00a1\n\21\3\21\2\2\22\2\4\6\b"+
+		"\n\f\16\20\22\24\26\30\32\34\36 \2\4\3\2\21\22\3\2\17\20\2\u00a3\2\"\3"+
+		"\2\2\2\4-\3\2\2\2\6\60\3\2\2\2\b=\3\2\2\2\nF\3\2\2\2\fH\3\2\2\2\16M\3"+
+		"\2\2\2\20Q\3\2\2\2\22X\3\2\2\2\24d\3\2\2\2\26t\3\2\2\2\30v\3\2\2\2\32"+
+		"|\3\2\2\2\34\u0080\3\2\2\2\36\u008b\3\2\2\2 \u00a0\3\2\2\2\"#\7\23\2\2"+
+		"#$\7\16\2\2$%\5\4\3\2%&\7\23\2\2&\'\7\r\2\2\'(\5\b\5\2()\b\2\1\2)\3\3"+
+		"\2\2\2*,\5\6\4\2+*\3\2\2\2,/\3\2\2\2-+\3\2\2\2-.\3\2\2\2.\5\3\2\2\2/-"+
+		"\3\2\2\2\60\61\7\31\2\2\61\64\7\23\2\2\62\65\7\3\2\2\63\65\7\5\2\2\64"+
+		"\62\3\2\2\2\64\63\3\2\2\2\65\66\3\2\2\2\66\67\b\4\1\2\67\7\3\2\2\289\5"+
+		"\n\6\29:\b\5\1\2:<\3\2\2\2;8\3\2\2\2<?\3\2\2\2=;\3\2\2\2=>\3\2\2\2>\t"+
+		"\3\2\2\2?=\3\2\2\2@G\5\f\7\2AG\5\16\b\2BG\5\20\t\2CG\5\22\n\2DG\5\30\r"+
+		"\2EG\5\32\16\2F@\3\2\2\2FA\3\2\2\2FB\3\2\2\2FC\3\2\2\2FD\3\2\2\2FE\3\2"+
+		"\2\2G\13\3\2\2\2HI\7\31\2\2IJ\7\24\2\2JK\5\34\17\2KL\b\7\1\2L\r\3\2\2"+
+		"\2MN\7\4\2\2NO\7\31\2\2OP\b\b\1\2P\17\3\2\2\2QV\7\6\2\2RS\7\31\2\2SW\b"+
+		"\t\1\2TU\7\32\2\2UW\b\t\1\2VR\3\2\2\2VT\3\2\2\2W\21\3\2\2\2XY\7\7\2\2"+
+		"YZ\5\24\13\2Z[\7\t\2\2[\\\b\n\1\2\\`\5\n\6\2]^\7\b\2\2^_\b\n\1\2_a\5\n"+
+		"\6\2`]\3\2\2\2`a\3\2\2\2ab\3\2\2\2bc\b\n\1\2c\23\3\2\2\2di\5\26\f\2ef"+
+		"\7\26\2\2fh\5\26\f\2ge\3\2\2\2hk\3\2\2\2ig\3\2\2\2ij\3\2\2\2j\25\3\2\2"+
+		"\2ki\3\2\2\2lm\5\34\17\2mn\7\25\2\2no\5\34\17\2ou\3\2\2\2pq\7\27\2\2q"+
+		"r\5\24\13\2rs\7\30\2\2su\3\2\2\2tl\3\2\2\2tp\3\2\2\2u\27\3\2\2\2vw\7\n"+
+		"\2\2wx\5\24\13\2xy\b\r\1\2yz\5\n\6\2z{\b\r\1\2{\31\3\2\2\2|}\7\13\2\2"+
+		"}~\5\b\5\2~\177\7\f\2\2\177\33\3\2\2\2\u0080\u0088\5\36\20\2\u0081\u0082"+
+		"\t\2\2\2\u0082\u0083\b\17\1\2\u0083\u0084\5\36\20\2\u0084\u0085\b\17\1"+
+		"\2\u0085\u0087\3\2\2\2\u0086\u0081\3\2\2\2\u0087\u008a\3\2\2\2\u0088\u0086"+
+		"\3\2\2\2\u0088\u0089\3\2\2\2\u0089\35\3\2\2\2\u008a\u0088\3\2\2\2\u008b"+
+		"\u0093\5 \21\2\u008c\u008d\t\3\2\2\u008d\u008e\b\20\1\2\u008e\u008f\5"+
+		" \21\2\u008f\u0090\b\20\1\2\u0090\u0092\3\2\2\2\u0091\u008c\3\2\2\2\u0092"+
+		"\u0095\3\2\2\2\u0093\u0091\3\2\2\2\u0093\u0094\3\2\2\2\u0094\37\3\2\2"+
+		"\2\u0095\u0093\3\2\2\2\u0096\u0097\7\33\2\2\u0097\u00a1\b\21\1\2\u0098"+
+		"\u0099\7\34\2\2\u0099\u00a1\b\21\1\2\u009a\u009b\7\31\2\2\u009b\u00a1"+
+		"\b\21\1\2\u009c\u009d\7\27\2\2\u009d\u009e\5\34\17\2\u009e\u009f\7\30"+
+		"\2\2\u009f\u00a1\3\2\2\2\u00a0\u0096\3\2\2\2\u00a0\u0098\3\2\2\2\u00a0"+
+		"\u009a\3\2\2\2\u00a0\u009c\3\2\2\2\u00a1!\3\2\2\2\r-\64=FV`it\u0088\u0093"+
+		"\u00a0";
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {

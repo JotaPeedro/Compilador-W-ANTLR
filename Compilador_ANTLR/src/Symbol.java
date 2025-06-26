@@ -6,6 +6,19 @@ public class Symbol {
 	private String value;
 	public enum Tipo { INT, REAL, INVALIDO, CADEIA }
 	
+	
+	public String generateCode() {
+		String str;
+		if(type==Tipo.INT) {
+			str="\tint "+name+";\n";
+		}else if(type==Tipo.REAL) {
+			str="\tdouble "+name+";\n";
+		}else {
+			str="";
+		}
+		return str;
+	}
+	
 	  public Symbol(String name, Tipo type) {
 	        this.name = name;
 	        this.type = type;

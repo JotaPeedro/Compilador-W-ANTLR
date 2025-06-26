@@ -1,7 +1,19 @@
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class SymbolTable {
 	private HashMap<String,Symbol>table;
+	
+	
+	public ArrayList<Symbol> getAll(){
+		ArrayList<Symbol> list =new ArrayList<Symbol>();
+		
+		for(Symbol symbol: table.values()) {
+			list.add(symbol);
+		}
+		
+		return list;
+	}
 	
 	public SymbolTable() {
 		table=new HashMap<String,Symbol>();

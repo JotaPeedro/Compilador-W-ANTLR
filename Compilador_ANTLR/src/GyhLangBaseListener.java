@@ -126,6 +126,30 @@ public class GyhLangBaseListener implements GyhLangListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterExpressaoRelacional(GyhLangParser.ExpressaoRelacionalContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitExpressaoRelacional(GyhLangParser.ExpressaoRelacionalContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterTermoRelacional(GyhLangParser.TermoRelacionalContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitTermoRelacional(GyhLangParser.TermoRelacionalContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterComandoRepeticao(GyhLangParser.ComandoRepeticaoContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -181,30 +205,6 @@ public class GyhLangBaseListener implements GyhLangListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitFatorAritmetico(GyhLangParser.FatorAritmeticoContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterExpressaoRelacional(GyhLangParser.ExpressaoRelacionalContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitExpressaoRelacional(GyhLangParser.ExpressaoRelacionalContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterTermoRelacional(GyhLangParser.TermoRelacionalContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitTermoRelacional(GyhLangParser.TermoRelacionalContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

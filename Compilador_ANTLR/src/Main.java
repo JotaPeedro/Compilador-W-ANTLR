@@ -12,6 +12,7 @@ public class Main {
 		CommonTokenStream tokens=new CommonTokenStream(lexer);
 		GyhLangParser parser=new GyhLangParser(tokens);
 		parser.programa();
+		parser.generateCommand();
 //		Token t;
 //		
 //		while((t=lexer.nextToken()).getType()!=Token.EOF) {
@@ -21,3 +22,6 @@ public class Main {
 	}
 
 }
+
+
+// java -jar antlr-4.7.2-complete.jar GyhLang.g4 -o .\src

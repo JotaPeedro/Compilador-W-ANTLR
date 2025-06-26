@@ -99,11 +99,38 @@ public class GyhLangLexer extends Lexer {
 		private SymbolTable SymbolTable=new SymbolTable();
 		private Symbol.Tipo currentExprType;
 		
+		//--
+		
+		
+		private String _expVar;
+		private String _expContent;
+		private String _writeVar;
+		private String _readVar;
+		private String cond;
+		private ArrayList<Command>condTrue = new ArrayList<Command>();
+		private ArrayList<Command>condFalse = new ArrayList<Command>();
+		
+		
+		private ArrayList<Command>listCmd= new ArrayList<Command>();
+		private ArrayList<Command>listAux= new ArrayList<Command>();
+		private GyhProgram program =new GyhProgram();
+		
+		//--
+		
+		public void generateCommand(){
+			program.generateTarget();
+		};
+		
+		
+		//Função para verificar se a variavel utilizada foi chamada,utilizada onde ocorrem o uso de variaveis
 		public void verificarVar(String nameVar){
 		if(!SymbolTable.exists(nameVar)){
 			System.err.println("Erro Semântico Variavel não declarada "+nameVar);
 			}
 		}
+		//Funcao para verificar a incompatibilidade de tipos entre INT e Float
+		//primeiro verifica se a variavel foi declarada depois o tipo de atribuição,
+		//se for tentar atribuir um real a um int ele da erro
 		
 		 public void checarAtribuicao(String varName, Symbol.Tipo tipoExpressao) {
 	        if (!SymbolTable.exists(varName)) {
@@ -120,6 +147,34 @@ public class GyhLangLexer extends Lexer {
 	        if (tipo1 == Symbol.Tipo.REAL || tipo2 == Symbol.Tipo.REAL) return Symbol.Tipo.REAL;
 	        return Symbol.Tipo.INT;
 	    }
+	    
+
+	    public void checarPrecisaoReal(String numeroLiteral) {
+	        try {
+	            // Cria um número de alta precisão a partir do texto
+	            java.math.BigDecimal original = new java.math.BigDecimal(numeroLiteral);
+
+	            // Converte o número de alta precisão para double (o tipo da nossa linguagem)
+	            double valorConvertido = original.doubleValue();
+	            
+	            // Se o valor convertido for Infinito, é um overflow de magnitude
+	            if (Double.isInfinite(valorConvertido)) {
+	                System.err.println("ERRO LÉXICO: Overflow de magnitude no número '" + numeroLiteral + "'. O valor é grande demais.");
+	                return;
+	            }
+
+	            // Converte o double de volta para alta precisão para ver se algo foi perdido
+	            java.math.BigDecimal revertido = new java.math.BigDecimal(valorConvertido);
+
+	            // Compara o número original com o revertido. Se forem diferentes, houve perda de precisão.
+	            if (original.compareTo(revertido) != 0) {
+	                System.err.println("ERRO LÉXICO: Overflow de precisão no número '" + numeroLiteral + "'. O número tem dígitos demais para serem representados com exatidão.");
+	            }
+	        } catch (NumberFormatException e) {
+	            System.err.println("ERRO LÉXICO: Formato inválido para o número '" + numeroLiteral + "'.");
+	        }
+	    }
+	    
 
 
 
